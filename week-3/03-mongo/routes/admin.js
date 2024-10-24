@@ -1,6 +1,6 @@
 const { Router } = require("express");
 const adminMiddleware = require("../middleware/admin");
-const { Admin } = require("../db");
+const { Admin, Course } = require("../db");
 const router = Router();
 
 // Admin Routes
@@ -24,12 +24,42 @@ router.post('/signup',async (req, res) => {
 
 });
 
-router.post('/courses', adminMiddleware, (req, res) => {
+router.post('/courses', adminMiddleware,async (req, res) => {
     // Implement course creation logic
+    const {title,description,price,imageLink} = req.body;
+
+    if(!title || !description || !price || !imageLink )
+        return res.status(400).send("Some fields are incomplete,Please Send all feilds");
+
+    try {
+
+        const newCourse = await Course.create({
+            title,
+            description,
+            price,
+            imageLink
+        });
+
+        res.status(201).json({courseId : newCourse._id});
+
+    } catch (error) {
+        res.status(500).send(`Some error occurred: ${error.message}`);
+        
+    }
+
 });
 
-router.get('/courses', adminMiddleware, (req, res) => {
+router.get('/courses', adminMiddleware, async (req, res) => {
     // Implement fetching all courses logic
+
+    try {
+        const response = await Course.find({});
+        return res.status(200).json({courses:response});
+        
+    } catch (error) {
+        res.send(`error occured ${error.message}`);
+    }
+
 });
 
 module.exports = router;

@@ -33,16 +33,30 @@ router.post('/courses/:courseId', userMiddleware, async(req, res) => {
     const courseId = req.params.courseId;
     const username = req.headers.username;
 
-    await User.updateOne({
-        username: username
-    }, {
-        "$push": {
-            purchasedCourses: courseId
+        // Check if username is provided
+        if (!username) {
+            return res.status(400).json({ message: "Username is required." });
         }
-    })
-    res.json({
-        message: "Purchase complete!"
-    })
+
+        try {
+           const result =  await User.updateOne({
+                username: username
+            }, {
+                "$push" :{
+                    purchasedCourses:courseId
+                }
+            })
+
+            if(result.nmodified === 0 ) 
+                return res.send("")
+            res.json({
+                message: "Purchase complete!"
+            })
+            
+        } catch (error) {
+            console.log("error occured while purchasing course ",error)
+            return res.status(500).send("error occured while purchasing course ");
+        }
 });
 
 router.get('/purchasedCourses', userMiddleware, async (req, res) => {
